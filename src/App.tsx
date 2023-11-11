@@ -1,24 +1,45 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query";
+import { fetchRates } from "./model";
+import { ExchangeRatesGrid } from "./Components";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>MomEx</h1>
+      <QueryClientProvider client={queryClient}>
+        <Rates />
+      </QueryClientProvider>
+    </div>
+  );
+}
+
+function Rates() {
+  const {
+    isLoading,
+    error,
+    data: rates,
+  } = useQuery({
+    queryKey: ["rates"],
+    queryFn: fetchRates,
+  });
+
+  return (
+    <div>
+      {isLoading ? (
+        "Loading..."
+      ) : error || !rates ? (
+        <span>Error: {error?.message ?? "Could not load rates"}</span>
+      ) : (
+        <ExchangeRatesGrid rates={rates} />
+      )}
     </div>
   );
 }
