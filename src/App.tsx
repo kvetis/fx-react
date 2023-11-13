@@ -36,7 +36,7 @@ function Rates() {
       {isLoading ? (
         "Loading..."
       ) : error || !rates ? (
-        <span>Error: {error?.message ?? "Could not load rates"}</span>
+        <span>Could not load rates: {error?.message ?? ""}</span>
       ) : (
         <ExchangeRatesGrid rates={rates} />
       )}
