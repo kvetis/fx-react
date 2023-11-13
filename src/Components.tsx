@@ -97,19 +97,23 @@ export const Label = styled.label`
 `;
 
 export const ExchangeForm = ({ rates }: { rates: Rate[] }) => {
-  const [amount, setAmount] = useState(new Decimal(100));
+  const [amount, setAmount] = useState("100");
   const [currency, setCurrency] = useState(rates[0]);
-  const cost = amount
-    .dividedBy(currency.rate)
+
+  let amountDecimal: Decimal | null = null;
+  try {
+    amountDecimal = new Decimal(amount).toDecimalPlaces(3);
+  } catch (error) {
+    // Ignore invalid input
+  }
+
+  const cost = amountDecimal
+    ?.dividedBy(currency.rate)
     .times(currency.amount)
     .toDecimalPlaces(4 - currency.amount.sd(true));
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      setAmount(new Decimal(event.target.value).toDecimalPlaces(3));
-    } catch (error) {
-      // Ignore invalid input
-    }
+    setAmount(event.target.value);
   };
 
   const handleCurrencyChange = (
@@ -118,7 +122,10 @@ export const ExchangeForm = ({ rates }: { rates: Rate[] }) => {
     setCurrency(rates.find(({ code }) => event.target.value === code)!);
   };
 
-  const show2x = cost.sd(true) > 5 || amount.sd(true) > 5;
+  const show2x =
+    (cost && cost.sd(true) > 5) ||
+    (amountDecimal && amountDecimal.sd(true) > 5) ||
+    false;
 
   return (
     <Box $x2={show2x}>
@@ -132,7 +139,7 @@ export const ExchangeForm = ({ rates }: { rates: Rate[] }) => {
       </Label>
 
       <Label>
-        <div>{cost.toString()}</div>
+        <div>{cost?.toString() ?? ""}</div>
         <Select value={currency.code} onChange={handleCurrencyChange}>
           {rates.map((rate) => (
             <option value={rate.code} key={rate.code}>
